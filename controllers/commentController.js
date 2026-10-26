@@ -1,3 +1,4 @@
+
 const {
     createComment,
     getCommentsByPostId,
@@ -6,14 +7,15 @@ const {
     deleteComment: deleteCommentById
 } = require("../models/commentModel");
 
-const {getPostById} = require("../models/postModel");
+const { getPostById } = require("../models/postModel");
+const notificationModel = require("../models/notificationModel");
 
 // Add a comment
 const addComment = async (req, res) => {
     try {
         const postId = Number(req.params.postId);
         const userId = req.user.userId;
-        const {content} = req.body;
+        const { content } = req.body;
 
         if (!Number.isInteger(postId) || postId <= 0) {
             return res.status(400).json({
@@ -40,6 +42,25 @@ const addComment = async (req, res) => {
             userId,
             content.trim()
         );
+
+        // Notify the post owner, except when they comment on their own post.
+        const postOwnerId = Number(post.user_id);
+
+        if (postOwnerId !== Number(userId)) {
+            try {
+                await notificationModel.createNotification(
+                    postOwnerId,
+                    "comment",
+                    "Someone commented on your post",
+                    postId
+                );
+            } catch (notificationError) {
+                console.error(
+                    "Create comment notification error:",
+                    notificationError
+                );
+            }
+        }
 
         return res.status(201).json({
             message: "Comment added successfully",
@@ -93,7 +114,7 @@ const editComment = async (req, res) => {
     try {
         const commentId = Number(req.params.commentId);
         const userId = req.user.userId;
-        const {content} = req.body;
+        const { content } = req.body;
 
         if (!Number.isInteger(commentId) || commentId <= 0) {
             return res.status(400).json({

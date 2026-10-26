@@ -1,14 +1,35 @@
 const db = require("../config/db");
 
 // Get profile by user ID
+
 const findProfileByUserId = async (userId) => {
     const [rows] = await db.query(
-        "SELECT * FROM profiles WHERE user_id = ?",
+        `SELECT
+            u.user_id,
+            u.name,
+            u.role,
+            u.is_verified,
+            p.profile_picture,
+            p.bio,
+            p.phone,
+            p.department,
+            p.degree,
+            p.graduation_year,
+            p.current_company,
+            p.job_title,
+            p.location,
+            p.skills,
+            p.linkedin_url,
+            p.github_url
+         FROM users u
+         LEFT JOIN profiles p ON u.user_id = p.user_id
+         WHERE u.user_id = ?`,
         [userId]
     );
 
     return rows[0];
 };
+
 
 // Create profile
 const createProfile = async (userId, profileData) => {

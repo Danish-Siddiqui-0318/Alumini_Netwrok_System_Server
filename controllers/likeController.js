@@ -1,3 +1,4 @@
+
 const {
     addLike,
     removeLike,
@@ -6,6 +7,7 @@ const {
 } = require("../models/likeModel");
 
 const { getPostById } = require("../models/postModel");
+const notificationModel = require("../models/notificationModel");
 
 // Like a post
 const likePost = async (req, res) => {
@@ -37,6 +39,25 @@ const likePost = async (req, res) => {
 
         await addLike(postId, userId);
 
+        // Notify the post owner, but never notify users about their own likes.
+        const postOwnerId = Number(post.user_id);
+
+        if (postOwnerId !== Number(userId)) {
+            try {
+                await notificationModel.createNotification(
+                    postOwnerId,
+                    "like",
+                    "Someone liked your post",
+                    postId
+                );
+            } catch (notificationError) {
+                console.error(
+                    "Create like notification error:",
+                    notificationError
+                );
+            }
+        }
+
         const likeCount = await getLikeCount(postId);
 
         return res.status(201).json({
@@ -45,7 +66,6 @@ const likePost = async (req, res) => {
             like_count: likeCount
         });
     } catch (error) {
-        // Handles duplicate likes if simultaneous requests occur.
         if (error.code === "ER_DUP_ENTRY") {
             return res.status(409).json({
                 message: "You have already liked this post"
