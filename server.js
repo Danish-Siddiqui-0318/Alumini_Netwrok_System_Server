@@ -47,20 +47,3 @@ app.use("/api/admin", adminRoutes);
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
-// Get me error: Error: read ECONNRESET
-//     at findUserById (D:\University\Sem 4\SPM\project\Server\models\userModel.js:27:29)
-//     at getMe (D:\University\Sem 4\SPM\project\Server\controllers\authController.js:117:28)
-//     at Layer.handleRequest (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\layer.js:152:17)
-//     at next (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\route.js:157:13)
-//     at authMiddleware (D:\University\Sem 4\SPM\project\Server\middleware\authMiddleware.js:38:9)
-//     at Layer.handleRequest (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\layer.js:152:17)
-//     at next (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\route.js:157:13)
-//     at Route.dispatch (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\route.js:117:3)
-//     at handle (D:\University\Sem 4\SPM\project\Server\node_modules\router\index.js:435:11)
-//     at Layer.handleRequest (D:\University\Sem 4\SPM\project\Server\node_modules\router\lib\layer.js:152:17) {
-//   errno: -4077,
-//   code: 'ECONNRESET',
-//   syscall: 'read',
-//   fatal: true
-// }

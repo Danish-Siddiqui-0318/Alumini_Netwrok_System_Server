@@ -3,6 +3,9 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, callback) => {
+     console.log("Upload field:", file.fieldname);
+    console.log("Upload filename:", file.originalname);
+    console.log("Upload MIME type:", file.mimetype);
     const allowedTypes = [
         "image/jpeg",
         "image/png",
