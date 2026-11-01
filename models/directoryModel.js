@@ -31,6 +31,7 @@ const getAllAlumni = async () => {
 };
 
 
+
 const searchUsersByName = async (name) => {
     const [rows] = await db.query(
         `SELECT
@@ -48,7 +49,8 @@ const searchUsersByName = async (name) => {
         FROM users u
         LEFT JOIN profiles p
             ON u.user_id = p.user_id
-        WHERE u.name LIKE ?
+        WHERE u.role = 'alumni'
+        AND u.name LIKE ?
         ORDER BY u.name ASC`,
         [`%${name}%`]
     );

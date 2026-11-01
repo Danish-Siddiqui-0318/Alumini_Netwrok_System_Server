@@ -16,13 +16,20 @@ const validStatuses = [
     "rejected"
 ];
 
+// job_applications.resume_url is VARCHAR(500)
+const MAX_RESUME_URL_LENGTH = 500;
+
+// IMPROVED: one place for the "valid positive integer ID" check that was
+// repeated in every function. Same rule, same error messages.
+const isValidId = (value) => Number.isInteger(value) && value > 0;
+
 // Apply for a job
 const applyForJob = async (req, res) => {
     try {
         const jobId = Number(req.params.jobId);
         const userId = req.user.userId;
 
-        if (!Number.isInteger(jobId) || jobId <= 0) {
+        if (!isValidId(jobId)) {
             return res.status(400).json({
                 message: "Invalid job ID"
             });
@@ -48,7 +55,9 @@ const applyForJob = async (req, res) => {
             });
         }
 
-        const {cover_letter, resume_url} = req.body;
+        // IMPROVED: "|| {}" stops a crash when a request has no body
+        // (Express 5 leaves req.body undefined; Express 4 already gives {}).
+        const {cover_letter, resume_url} = req.body || {};
 
         if (
             cover_letter !== undefined &&
@@ -67,6 +76,17 @@ const applyForJob = async (req, res) => {
         ) {
             return res.status(400).json({
                 message: "Invalid resume URL"
+            });
+        }
+
+        // IMPROVED: a URL longer than the column used to fail inside MySQL and
+        // come back as a generic 500. Now it is a clear 400.
+        if (
+            typeof resume_url === "string" &&
+            resume_url.length > MAX_RESUME_URL_LENGTH
+        ) {
+            return res.status(400).json({
+                message: "Resume URL is too long"
             });
         }
 
@@ -101,7 +121,7 @@ const getJobApplications = async (req, res) => {
     try {
         const jobId = Number(req.params.jobId);
 
-        if (!Number.isInteger(jobId) || jobId <= 0) {
+        if (!isValidId(jobId)) {
             return res.status(400).json({
                 message: "Invalid job ID"
             });
@@ -164,12 +184,9 @@ const getMyApplications = async (req, res) => {
 const editApplicationStatus = async (req, res) => {
     try {
         const applicationId = Number(req.params.applicationId);
-        const {status} = req.body;
+        const {status} = req.body || {};
 
-        if (
-            !Number.isInteger(applicationId) ||
-            applicationId <= 0
-        ) {
+        if (!isValidId(applicationId)) {
             return res.status(400).json({
                 message: "Invalid application ID"
             });
@@ -190,6 +207,14 @@ const editApplicationStatus = async (req, res) => {
         }
 
         const job = await getJobById(application.job_id);
+
+        // IMPROVED: if the job were ever missing, "job.posted_by" below would
+        // throw and return a vague 500. Answer with a clear 404 instead.
+        if (!job) {
+            return res.status(404).json({
+                message: "Job not found"
+            });
+        }
 
         const isAdmin = req.user.role === "admin";
         const isOwner =
@@ -221,10 +246,7 @@ const withdrawApplication = async (req, res) => {
     try {
         const applicationId = Number(req.params.applicationId);
 
-        if (
-            !Number.isInteger(applicationId) ||
-            applicationId <= 0
-        ) {
+        if (!isValidId(applicationId)) {
             return res.status(400).json({
                 message: "Invalid application ID"
             });
